@@ -2,9 +2,11 @@ import React, { useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ListScreen() {
     const { properties, setProperties } = useContext(UserContext);
+    const navigation = useNavigation();
 
     const handleDelete = (id) => {
         Alert.alert(
@@ -59,7 +61,7 @@ export default function ListScreen() {
             <View style={styles.buttonGroups}>
                 <TouchableOpacity 
                     style={styles.editButton}
-                    onPress={() => {}}
+                    onPress={() => navigation.navigate('DataEntry', { property: item })}
                 >
                     <Text style={styles.buttonText}>Editar</Text>
                 </TouchableOpacity>

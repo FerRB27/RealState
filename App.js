@@ -50,12 +50,12 @@ export default function App() {
         <Stack.Screen 
           name="DataEntry" 
           component={DataEntryScreen}
-          options={{
-            title: 'Nueva Propiedad',
+          options={({ route }) => ({
+            title: route.params?.property ? 'Editar Propiedad' : 'Nueva Propiedad',
             headerTintColor: 'white',
             headerTitleAlign: 'center',
             headerStyle: { backgroundColor: '#2E7D32' },
-          }}
+          })}
         />
         <Stack.Screen 
           name="List" 

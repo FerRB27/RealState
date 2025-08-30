@@ -4,35 +4,50 @@ import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-export default function DataEntryScreen() {
+export default function DataEntryScreen({ route }) {
     const { properties, setProperties } = useContext(UserContext);
     const navigation = useNavigation();
+    const editingProperty = route.params?.property;
     
-    const [propertyData, setPropertyData] = useState({
-        titulo: '',
-        direccion: '',
-        precio: '',
-        dormitorios: '',
-        baños: '',
-        metros: '',
-        descripcion: ''
-    });
+    const [propertyData, setPropertyData] = useState(
+        editingProperty || {
+            titulo: '',
+            direccion: '',
+            precio: '',
+            dormitorios: '',
+            baños: '',
+            metros: '',
+            descripcion: ''
+        }
+    );
 
     const handleSubmit = () => {
-        const newProperty = {
-            id: Date.now().toString(),
-            ...propertyData,
-            fecha: new Date().toLocaleDateString()
-        };
-        
-        setProperties([...properties, newProperty]);
+        if (editingProperty) {
+            // Actualizar propiedad existente
+            const updatedProperties = properties.map(prop => 
+                prop.id === editingProperty.id 
+                    ? { ...propertyData, id: prop.id } 
+                    : prop
+            );
+            setProperties(updatedProperties);
+        } else {
+            // Crear nueva propiedad
+            const newProperty = {
+                id: Date.now().toString(),
+                ...propertyData,
+                fecha: new Date().toLocaleDateString()
+            };
+            setProperties([...properties, newProperty]);
+        }
         navigation.navigate('List');
     };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <MaterialIcons name="house" size={60} color="#2E7D32" style={styles.icon} />
-            <Text style={styles.title}>Nueva Propiedad</Text>
+            <Text style={styles.title}>
+                {editingProperty ? 'Editar Propiedad' : 'Nueva Propiedad'}
+            </Text>
 
             <View style={styles.form}>
                 <TextInput
