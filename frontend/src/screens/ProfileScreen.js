@@ -1,13 +1,14 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {
-    const { user, properties } = useContext(UserContext);
+    const { user, token, properties } = useContext(UserContext);
     const navigation = useNavigation();
-    
+
+    // Guardamos la información del usuario para mostrarla en el perfil
     const [userInfo] = useState({
         nombre: 'Fernando Agente',
         email: 'fernando@ferreal.com',
@@ -16,12 +17,34 @@ export default function ProfileScreen() {
         experiencia: '5 años'
     });
 
+    // Si el usuario no ha iniciado sesión, mostramos una alerta y lo mandamos a Login
+    useEffect(() => {
+        if (!token) {
+            Alert.alert(
+                'Acceso denegado',
+                'Debes iniciar sesión para acceder a esta pantalla.',
+                [
+                    { text: 'OK', onPress: () => navigation.navigate('Login') }
+                ],
+                { cancelable: false }
+            );
+        }
+    }, [token]);
+
+    // Si no hay token, no mostramos nada (evita que se vea la pantalla si no está logueado)
+    if (!token) {
+        return null;
+    }
+
+    // Esta función se llama cuando el usuario quiere salir del perfil
     const handleLogout = () => {
         navigation.navigate('Login');
     };
 
+    // Aquí está el contenido principal de la pantalla de perfil
     return (
         <ScrollView contentContainerStyle={styles.container}>
+            {/* Mostramos el avatar y nombre del usuario */}
             <View style={styles.avatarContainer}>
                 <MaterialIcons name="person" size={80} color="#2E7D32" />
             </View>
@@ -29,6 +52,7 @@ export default function ProfileScreen() {
             <Text style={styles.name}>{userInfo.nombre}</Text>
             <Text style={styles.email}>{userInfo.email}</Text>
 
+            {/* Mostramos información personal */}
             <View style={styles.infoCard}>
                 <Text style={styles.infoTitle}>Información Personal</Text>
                 <Text style={styles.infoItem}>Teléfono: {userInfo.telefono}</Text>
@@ -36,6 +60,7 @@ export default function ProfileScreen() {
                 <Text style={styles.infoItem}>Experiencia: {userInfo.experiencia}</Text>
             </View>
 
+            {/* Mostramos estadísticas de propiedades */}
             <View style={styles.statsCard}>
                 <Text style={styles.infoTitle}>Estadísticas</Text>
                 <Text style={styles.infoItem}>Propiedades Registradas: {properties?.length || 0}</Text>
@@ -43,10 +68,12 @@ export default function ProfileScreen() {
                 <Text style={styles.infoItem}>Propiedades en Alquiler: 0</Text>
             </View>
 
+            {/* Botón para editar el perfil */}
             <TouchableOpacity style={styles.editButton} onPress={() => {}}>
                 <Text style={styles.buttonText}>Editar Perfil</Text>
             </TouchableOpacity>
 
+            {/* Botón para cerrar sesión */}
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Text style={styles.buttonText}>Cerrar Sesión</Text>
             </TouchableOpacity>

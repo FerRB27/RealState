@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -8,22 +8,33 @@ export default function HomeScreen() {
     const navigation = useNavigation();
     const { user, token, logout } = useContext(UserContext);
 
-    // Si no está autenticado, redirigir a Login
+    // Cuando el usuario no ha iniciado sesión, mostramos una alerta y lo mandamos a la pantalla de Login
     React.useEffect(() => {
         if (!token) {
-            navigation.navigate('Login');
+            Alert.alert(
+                'Acceso denegado',
+                'Debes iniciar sesión para acceder a esta pantalla.',
+                [
+                    { text: 'OK', onPress: () => navigation.navigate('Login') }
+                ],
+                { cancelable: false }
+            );
         }
     }, [token]);
 
+    // Si no hay token, no mostramos nada (evita que se vea la pantalla si no está logueado)
     if (!token) {
-        return null; // O un loader
+        return null;
     }
 
+    // Aquí está el contenido principal de la pantalla de inicio
     return (
         <View style={styles.container}>
+            {/* Mostramos el nombre del usuario */}
             <Text style={styles.title}>Bienvenido, {user?.username}</Text>
             <Text style={styles.subtitle}>Panel de Control</Text>
 
+            {/* Botón para ver propiedades */}
             <TouchableOpacity 
                 style={styles.button}
                 onPress={() => navigation.navigate('List')}
@@ -32,6 +43,7 @@ export default function HomeScreen() {
                 <Text style={styles.buttonText}>Ver Propiedades</Text>
             </TouchableOpacity>
 
+            {/* Botón para agregar nueva propiedad */}
             <TouchableOpacity 
                 style={styles.button}
                 onPress={() => navigation.navigate('DataEntry')}
@@ -40,6 +52,7 @@ export default function HomeScreen() {
                 <Text style={styles.buttonText}>Nueva Propiedad</Text>
             </TouchableOpacity>
 
+            {/* Botón para ir al perfil */}
             <TouchableOpacity 
                 style={styles.button}
                 onPress={() => navigation.navigate('Profile')}
@@ -48,6 +61,7 @@ export default function HomeScreen() {
                 <Text style={styles.buttonText}>Mi Perfil</Text>
             </TouchableOpacity>
 
+            {/* Botón para cerrar sesión */}
             <TouchableOpacity 
                 style={styles.buttonDanger}
                 onPress={() => { logout(); navigation.navigate('Login'); }}
