@@ -18,7 +18,7 @@ mongoose.connect('mongodb://localhost:27017/real-state').then(() => {
 
 //Rutas
 const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
+app.use('/api-real-state/auth', authRoutes);
 
 //configurar puerto para backend
 const PORT = process.env.PORT || 5000;

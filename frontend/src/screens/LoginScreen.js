@@ -8,13 +8,35 @@ export default function LoginScreen() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [focusedInput, setFocusedInput] = useState(null);
-    const { setUser } = useContext(UserContext);
+    const [error, setError] = useState('');
+    const { login } = useContext(UserContext);
     const navigation = useNavigation();
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
+        setError('');
         if (username && password) {
-            setUser({ username });
-            navigation.navigate('Home');
+            try {
+                //Para poder probar con un telefono real (desde expo go) se hace la peticion a la IP local de la computadora
+                //y no a localhost
+                //Si se prueba en un emulador, usar localhost
+                //const response = await fetch('http://localhost:5000/api-real-state/auth/login', {
+                const response = await fetch('http://192.168.0.15:5000/api-real-state/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre: username, contraseña: password })
+                });
+                const data = await response.json();
+                if (response.ok && data.token) {
+                    login({ username }, data.token);
+                    navigation.navigate('Home');
+                } else {
+                    setError(data.mensaje || 'Error al iniciar sesión');
+                }
+            } catch (err) {
+                setError('No se pudo conectar al servidor');
+            }
+        } else {
+            setError('Ingrese usuario y contraseña');
         }
     };
 
@@ -22,7 +44,7 @@ export default function LoginScreen() {
         <View style={styles.padre}>
             <MaterialIcons name="real-estate-agent" size={100} color="#2E7D32" />
             <Text style={styles.title}>FerRealState</Text>
-            
+            {error ? <Text style={{ color: 'red', marginBottom: 10 }}>{error}</Text> : null}
             <View style={styles.tarjeta}>
                 <TextInput
                     placeholder="Usuario"
@@ -35,7 +57,6 @@ export default function LoginScreen() {
                     onFocus={() => setFocusedInput('username')}
                     onBlur={() => setFocusedInput(null)}
                 />
-                
                 <TextInput
                     placeholder="Contraseña"
                     value={password}
@@ -48,7 +69,6 @@ export default function LoginScreen() {
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
                 />
-
                 <View style={styles.padreBoton}>
                     <TouchableOpacity 
                         style={styles.cajaBoton}

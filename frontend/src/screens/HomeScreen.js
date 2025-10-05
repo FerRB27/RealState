@@ -6,7 +6,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
-    const { user } = useContext(UserContext);
+    const { user, token, logout } = useContext(UserContext);
+
+    // Si no está autenticado, redirigir a Login
+    React.useEffect(() => {
+        if (!token) {
+            navigation.navigate('Login');
+        }
+    }, [token]);
+
+    if (!token) {
+        return null; // O un loader
+    }
 
     return (
         <View style={styles.container}>
@@ -39,7 +50,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity 
                 style={styles.buttonDanger}
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => { logout(); navigation.navigate('Login'); }}
             >
                 <MaterialIcons name="logout" size={24} color="white" />
                 <Text style={styles.buttonText}>Cerrar Sesión</Text>
