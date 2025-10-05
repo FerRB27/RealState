@@ -4,6 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { UserProvider } from './frontend/src/context/UserContext';
+import { SQLiteProvider } from 'expo-sqlite'; 
+import {initDB} from './frontend/src/db/database';
 
 // Importar pantallas
 import LoginScreen from './frontend/src/screens/LoginScreen';
@@ -74,6 +76,10 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <UserProvider>
+      <SQLiteProvider
+        databaseName="realstate.db"
+        onInit={initDB}
+      >
       <NavigationContainer>
         <Tab.Navigator initialRouteName="Login"
           screenOptions={({ route }) => ({
@@ -93,6 +99,7 @@ export default function App() {
           <Tab.Screen name="Login" component={LoginScreen} options={{ tabBarLabel: 'Salir' }} />
         </Tab.Navigator>
       </NavigationContainer>
+      </SQLiteProvider>
     </UserProvider>
   );
 }

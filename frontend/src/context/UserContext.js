@@ -1,39 +1,33 @@
 import React, { createContext, useState } from 'react';
+// No es necesario importar funciones de la base de datos aquí
 
 // Este contexto nos ayuda a compartir la información del usuario en toda la app
 export const UserContext = createContext();
 
 // UserProvider es el "envoltorio" que guarda los datos del usuario y si está logueado
 export const UserProvider = ({children}) => {
-    // Aquí guardamos el usuario actual
+    // Estado de usuario y token
     const [user, setUser] = useState(null);
-    // Aquí guardamos el token que nos da el backend cuando iniciamos sesión
     const [token, setToken] = useState(null);
-    // Aquí guardamos las propiedades inmobiliarias (puedes usarlo para tu lista de casas, etc)
-    const [properties, setProperties] = useState([]);
 
-    // Esta función se llama cuando el usuario inicia sesión correctamente
+    // Funciones de login y logout
     const login = (userData, tokenValue) => {
-        setUser(userData); // Guardamos el usuario
-        setToken(tokenValue); // Guardamos el token
+        setUser(userData);
+        setToken(tokenValue);
     };
-
-    // Esta función se llama cuando el usuario quiere salir de la app
     const logout = () => {
-        setUser(null); // Borramos el usuario
-        setToken(null); // Borramos el token
+        setUser(null);
+        setToken(null);
     };
 
-    // Compartimos toda esta información con el resto de la app
+    // Solo compartimos la sesión y usuario
     return (
         <UserContext.Provider value={{
-            user, 
+            user,
             setUser,
             token,
             login,
-            logout,
-            properties,
-            setProperties
+            logout
         }}>
             {children}
         </UserContext.Provider>

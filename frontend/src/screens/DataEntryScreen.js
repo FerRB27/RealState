@@ -1,16 +1,14 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { Alert } from 'react-native';
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function DataEntryScreen({ route }) {
-    const { properties, setProperties } = useContext(UserContext);
-    const navigation = useNavigation();
-    const editingProperty = route.params?.property;
-    
     const [propertyData, setPropertyData] = useState(
-        editingProperty || {
+        route.params?.property || {
             titulo: '',
             direccion: '',
             precio: '',
@@ -20,26 +18,96 @@ export default function DataEntryScreen({ route }) {
             descripcion: ''
         }
     );
+    const db = useSQLiteContext(); // Hook para obtener la instancia de la base de datos
+    const navigation = useNavigation();
+    const editingProperty = route.params?.property;
 
-    const handleSubmit = () => {
-        if (editingProperty) {
-            // Actualizar propiedad existente
-            const updatedProperties = properties.map(prop => 
-                prop.id === editingProperty.id 
-                    ? { ...propertyData, id: prop.id } 
-                    : prop
-            );
-            setProperties(updatedProperties);
-        } else {
-            // Crear nueva propiedad
-            const newProperty = {
-                id: Date.now().toString(),
-                ...propertyData,
-                fecha: new Date().toLocaleDateString()
-            };
-            setProperties([...properties, newProperty]);
+    const addProperty = async (property) => {
+        try {
+            await db.runAsync("INSERT INTO propiedades (titulo, direccion, precio, dormitorios, banos, metros, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)", [
+                property.titulo,
+                property.direccion,
+                property.precio,
+                property.dormitorios,
+                property.baños,
+                property.metros,
+                property.descripcion
+            ]);
+            // Limpiar campos después de guardar
+            setPropertyData({
+                titulo: '',
+                direccion: '',
+                precio: '',
+                dormitorios: '',
+                baños: '',
+                metros: '',
+                descripcion: ''
+            });
+        } catch (error) {
+            console.error('Error al agregar propiedad:', error);
+            Alert.alert('Error', `No se pudo agregar la propiedad.\n${error?.message || error}`);
         }
-        navigation.navigate('List');
+    };
+
+        const updateProperty = async (property) => {
+            try {
+                await db.runAsync("UPDATE propiedades SET titulo = ?, direccion = ?, precio = ?, dormitorios = ?, banos = ?, metros = ?, descripcion = ? WHERE id = ?", [
+                    property.titulo,
+                    property.direccion,
+                    property.precio,
+                    property.dormitorios,
+                    property.baños,
+                    property.metros,
+                    property.descripcion,
+                    property.id
+                ]);
+            } catch (error) {
+                console.error('Error al actualizar propiedad:', error);
+                Alert.alert('Error', `No se pudo actualizar la propiedad.\n${error?.message || error}`);
+            }
+        };
+
+    // Función para agregar o editar propiedad
+    const addPropertyHandler = async () => {
+        try {
+            const requiredFields = [
+                { key: 'titulo', label: 'Título de la propiedad' },
+                { key: 'direccion', label: 'Dirección' },
+                { key: 'precio', label: 'Precio' },
+                { key: 'dormitorios', label: 'Dormitorios' },
+                { key: 'baños', label: 'Baños' },
+                { key: 'metros', label: 'Metros cuadrados' },
+                { key: 'descripcion', label: 'Descripción' }
+            ];
+            for (const field of requiredFields) {
+                if (!propertyData[field.key] || propertyData[field.key].toString().trim() === '') {
+                    Alert.alert('Campo requerido', `Por favor ingresa: ${field.label}`);
+                    return;
+                }
+            }
+            if (editingProperty) {
+                // Editar propiedad existente
+                await updateProperty({ ...propertyData, id: editingProperty.id });
+                Alert.alert('Éxito', 'Propiedad actualizada con éxito');
+            } else {
+                // Agregar nueva propiedad (sin id ni fecha)
+                await addProperty({ ...propertyData });
+                Alert.alert('Éxito', 'Propiedad agregada con éxito');
+                setPropertyData({
+                    titulo: '',
+                    direccion: '',
+                    precio: '',
+                    dormitorios: '',
+                    baños: '',
+                    metros: '',
+                    descripcion: ''
+                });
+            }
+            navigation.navigate('List');
+        } catch (error) {
+            console.error('Error al guardar/editar propiedad:', error);
+            Alert.alert('Error', `No se pudo guardar/editar la propiedad.\n${error?.message || error}`);
+        }
     };
 
     return (
@@ -107,7 +175,7 @@ export default function DataEntryScreen({ route }) {
                     numberOfLines={4}
                 />
 
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                <TouchableOpacity style={styles.submitButton} onPress={addPropertyHandler}>
                     <Text style={styles.submitButtonText}>Guardar Propiedad</Text>
                 </TouchableOpacity>
             </View>

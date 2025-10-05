@@ -1,13 +1,26 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSQLiteContext } from "expo-sqlite";
 import { useNavigation } from '@react-navigation/native';
 
 export default function ListScreen() {
-    const { properties, setProperties } = useContext(UserContext);
+    const [properties, setProperties] = useState([]);
+    const db = useSQLiteContext();
     const navigation = useNavigation();
 
+    //Mostrar propiedades guardadas en la base de datos
+    useEffect(() => {
+        loadProperties();
+    }, []);
+
+    //Para obtener las propiedades
+    const loadProperties = async () => {
+        const result = await db.getAllAsync("SELECT * FROM propiedades");
+        setProperties(result);
+    };
+
+    //Para eliminar las propiedades
     const handleDelete = (id) => {
         Alert.alert(
             "Eliminar Propiedad",
@@ -19,14 +32,24 @@ export default function ListScreen() {
                 },
                 {
                     text: "Eliminar",
-                    onPress: () => {
-                        const updatedProperties = properties.filter(prop => prop.id !== id);
-                        setProperties(updatedProperties);
+                    onPress: async () => {
+                        await db.runAsync("DELETE FROM propiedades WHERE id = ?", [id]);
+                        loadProperties();
                     },
                     style: "destructive"
                 }
             ]
         );
+    };
+
+    //para editar.
+    //editar paciente
+    const editProperty = (id) => {
+        const patientToEdit = patients.find((p) => p.id === id);
+        if (patientToEdit) {
+        setInputText(patientToEdit.name);
+        setEditingId(id);
+        }
     };
 
     const renderItem = ({ item }) => (
@@ -46,7 +69,7 @@ export default function ListScreen() {
                 </View>
                 <View style={styles.detailItem}>
                     <MaterialIcons name="bathtub" size={20} color="#666" />
-                    <Text style={styles.detailText}>{item.baños} baños</Text>
+                    <Text style={styles.detailText}>{item.banos} baños</Text>
                 </View>
                 <View style={styles.detailItem}>
                     <MaterialIcons name="square-foot" size={20} color="#666" />
@@ -88,7 +111,7 @@ export default function ListScreen() {
                 <FlatList
                     data={properties}
                     renderItem={renderItem}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => String(item.id)}
                     showsVerticalScrollIndicator={false}
                 />
             )}
