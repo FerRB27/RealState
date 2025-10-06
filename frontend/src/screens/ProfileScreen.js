@@ -12,14 +12,14 @@ export default function ProfileScreen() {
     const [darkTheme, setDarkTheme] = useState(false);
     const [language, setLanguage] = useState('es');
 
-    // Guardamos la información del usuario para mostrarla en el perfil
-    const [userInfo] = useState({
-        nombre: 'Fernando Agente',
-        email: 'fernando@ferreal.com',
-        telefono: '+503 7777-7777',
-        cargo: 'Agente Inmobiliario Senior',
-        experiencia: '5 años'
-    });
+    // Usar datos del usuario logueado si existen
+    const userInfo = {
+        nombre: user?.username || 'Usuario',
+        email: user?.email || 'correo@ejemplo.com',
+        telefono: user?.telefono || '+503 0000-0000',
+        cargo: user?.cargo || 'Agente Inmobiliario',
+        experiencia: user?.experiencia || '1 año'
+    };
 
     // Cargar preferencias de AsyncStorage
     useEffect(() => {
