@@ -3,7 +3,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
-import { UserProvider } from './frontend/src/context/UserContext';
+import React, { useRef, useContext } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { UserProvider, UserContext } from './frontend/src/context/UserContext';
 import { SQLiteProvider } from 'expo-sqlite'; 
 import {initDB} from './frontend/src/db/database';
 
@@ -73,6 +75,44 @@ function ProfileStackScreen() {
 
 const Tab = createBottomTabNavigator();
 
+function AppContent() {
+  const navigationRef = useRef();
+  const { logout } = useContext(UserContext);
+
+  return (
+    <NavigationContainer ref={navigationRef}>
+      <Tab.Navigator initialRouteName="Login"
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ color, size }) => {
+            let iconName;
+            if (route.name === 'Home') iconName = 'home';
+            else if (route.name === 'Profile') iconName = 'person';
+            else if (route.name === 'Login') iconName = 'login';
+            return <MaterialIcons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#2E7D32',
+          tabBarInactiveTintColor: 'gray',
+        })}
+      >
+        <Tab.Screen name="Home" component={HomeStackScreen} options={{ tabBarLabel: 'Inicio' }} />
+        <Tab.Screen name="Profile" component={ProfileStackScreen} options={{ tabBarLabel: 'Perfil' }} />
+        <Tab.Screen name="Login" component={LoginScreen} options={{ 
+          tabBarLabel: 'Salir',
+          tabBarButton: (props) => (
+            <TouchableOpacity 
+              {...props} 
+              onPress={() => { 
+                logout(); 
+                navigationRef.current?.navigate('Login'); 
+              }} 
+            />
+          )
+        }} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   return (
     <UserProvider>
@@ -80,25 +120,7 @@ export default function App() {
         databaseName="realstate.db"
         onInit={initDB}
       >
-      <NavigationContainer>
-        <Tab.Navigator initialRouteName="Login"
-          screenOptions={({ route }) => ({
-            tabBarIcon: ({ color, size }) => {
-              let iconName;
-              if (route.name === 'Home') iconName = 'home';
-              else if (route.name === 'Profile') iconName = 'person';
-              else if (route.name === 'Login') iconName = 'login';
-              return <MaterialIcons name={iconName} size={size} color={color} />;
-            },
-            tabBarActiveTintColor: '#2E7D32',
-            tabBarInactiveTintColor: 'gray',
-          })}
-        >
-          <Tab.Screen name="Home" component={HomeStackScreen} options={{ tabBarLabel: 'Inicio' }} />
-          <Tab.Screen name="Profile" component={ProfileStackScreen} options={{ tabBarLabel: 'Perfil' }} />
-          <Tab.Screen name="Login" component={LoginScreen} options={{ tabBarLabel: 'Salir' }} />
-        </Tab.Navigator>
-      </NavigationContainer>
+        <AppContent />
       </SQLiteProvider>
     </UserProvider>
   );
