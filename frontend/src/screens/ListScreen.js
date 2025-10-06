@@ -42,15 +42,8 @@ export default function ListScreen() {
         );
     };
 
-    //para editar.
-    //editar paciente
-    const editProperty = (id) => {
-        const patientToEdit = patients.find((p) => p.id === id);
-        if (patientToEdit) {
-        setInputText(patientToEdit.name);
-        setEditingId(id);
-        }
-    };
+    // nota: la navegación al formulario ya pasa el objeto 'item' como { property: item }
+    // función editProperty no es necesaria aquí porque usamos navigation.navigate
 
     const renderItem = ({ item }) => (
         <View style={styles.propertyCard}>

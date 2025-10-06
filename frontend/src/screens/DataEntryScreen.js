@@ -13,7 +13,7 @@ export default function DataEntryScreen({ route }) {
             direccion: '',
             precio: '',
             dormitorios: '',
-            baños: '',
+            banos: '',
             metros: '',
             descripcion: ''
         }
@@ -27,10 +27,10 @@ export default function DataEntryScreen({ route }) {
             await db.runAsync("INSERT INTO propiedades (titulo, direccion, precio, dormitorios, banos, metros, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)", [
                 property.titulo,
                 property.direccion,
-                property.precio,
-                property.dormitorios,
-                property.baños,
-                property.metros,
+                Number(property.precio),
+                Number(property.dormitorios),
+                Number(property.banos),
+                Number(property.metros),
                 property.descripcion
             ]);
             // Limpiar campos después de guardar
@@ -39,7 +39,7 @@ export default function DataEntryScreen({ route }) {
                 direccion: '',
                 precio: '',
                 dormitorios: '',
-                baños: '',
+                banos: '',
                 metros: '',
                 descripcion: ''
             });
@@ -54,10 +54,10 @@ export default function DataEntryScreen({ route }) {
                 await db.runAsync("UPDATE propiedades SET titulo = ?, direccion = ?, precio = ?, dormitorios = ?, banos = ?, metros = ?, descripcion = ? WHERE id = ?", [
                     property.titulo,
                     property.direccion,
-                    property.precio,
-                    property.dormitorios,
-                    property.baños,
-                    property.metros,
+                    Number(property.precio),
+                    Number(property.dormitorios),
+                    Number(property.banos),
+                    Number(property.metros),
                     property.descripcion,
                     property.id
                 ]);
@@ -75,7 +75,7 @@ export default function DataEntryScreen({ route }) {
                 { key: 'direccion', label: 'Dirección' },
                 { key: 'precio', label: 'Precio' },
                 { key: 'dormitorios', label: 'Dormitorios' },
-                { key: 'baños', label: 'Baños' },
+                { key: 'banos', label: 'Baños' },
                 { key: 'metros', label: 'Metros cuadrados' },
                 { key: 'descripcion', label: 'Descripción' }
             ];
@@ -98,7 +98,7 @@ export default function DataEntryScreen({ route }) {
                     direccion: '',
                     precio: '',
                     dormitorios: '',
-                    baños: '',
+                    banos: '',
                     metros: '',
                     descripcion: ''
                 });
@@ -135,7 +135,7 @@ export default function DataEntryScreen({ route }) {
                 <TextInput
                     style={styles.input}
                     placeholder="Precio"
-                    value={propertyData.precio}
+                    value={propertyData.precio != null ? String(propertyData.precio) : ''}
                     onChangeText={(text) => setPropertyData({...propertyData, precio: text})}
                     keyboardType="numeric"
                 />
@@ -144,7 +144,7 @@ export default function DataEntryScreen({ route }) {
                     <TextInput
                         style={[styles.input, styles.halfInput]}
                         placeholder="Dormitorios"
-                        value={propertyData.dormitorios}
+                        value={propertyData.dormitorios != null ? String(propertyData.dormitorios) : ''}
                         onChangeText={(text) => setPropertyData({...propertyData, dormitorios: text})}
                         keyboardType="numeric"
                     />
@@ -152,8 +152,8 @@ export default function DataEntryScreen({ route }) {
                     <TextInput
                         style={[styles.input, styles.halfInput]}
                         placeholder="Baños"
-                        value={propertyData.baños}
-                        onChangeText={(text) => setPropertyData({...propertyData, baños: text})}
+                        value={propertyData.banos != null ? String(propertyData.banos) : ''}
+                        onChangeText={(text) => setPropertyData({...propertyData, banos: text})}
                         keyboardType="numeric"
                     />
                 </View>
@@ -161,7 +161,7 @@ export default function DataEntryScreen({ route }) {
                 <TextInput
                     style={styles.input}
                     placeholder="Metros cuadrados"
-                    value={propertyData.metros}
+                    value={propertyData.metros != null ? String(propertyData.metros) : ''}
                     onChangeText={(text) => setPropertyData({...propertyData, metros: text})}
                     keyboardType="numeric"
                 />
