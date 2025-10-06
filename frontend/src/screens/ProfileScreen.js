@@ -1,4 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Switch } from 'react-native';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { UserContext } from '../context/UserContext';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,6 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 export default function ProfileScreen() {
     const { user, token, properties } = useContext(UserContext);
     const navigation = useNavigation();
+    const [darkTheme, setDarkTheme] = useState(false);
+    const [language, setLanguage] = useState('es');
 
     // Guardamos la información del usuario para mostrarla en el perfil
     const [userInfo] = useState({
@@ -17,8 +21,15 @@ export default function ProfileScreen() {
         experiencia: '5 años'
     });
 
-    // Si el usuario no ha iniciado sesión, mostramos una alerta y lo mandamos a Login
+    // Cargar preferencias de AsyncStorage
     useEffect(() => {
+        const loadPrefs = async () => {
+            const theme = await AsyncStorage.getItem('theme');
+            const lang = await AsyncStorage.getItem('language');
+            if (theme) setDarkTheme(theme === 'dark');
+            if (lang) setLanguage(lang);
+        };
+        loadPrefs();
         if (!token) {
             Alert.alert(
                 'Acceso denegado',
@@ -36,46 +47,126 @@ export default function ProfileScreen() {
         return null;
     }
 
+    // Guardar preferencias en AsyncStorage
+    const handleThemeChange = async (value) => {
+        setDarkTheme(value);
+        await AsyncStorage.setItem('theme', value ? 'dark' : 'light');
+    };
+    const handleLanguageChange = async (value) => {
+        setLanguage(value);
+        await AsyncStorage.setItem('language', value);
+    };
+
     // Esta función se llama cuando el usuario quiere salir del perfil
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('theme');
+        await AsyncStorage.removeItem('language');
         navigation.navigate('Login');
+    };
+
+    // Estilos dinámicos para modo oscuro
+    const dynamicStyles = {
+        container: {
+            ...styles.container,
+            backgroundColor: darkTheme ? '#222' : '#F5F5F5',
+        },
+        name: {
+            ...styles.name,
+            color: darkTheme ? '#fff' : '#2E7D32',
+        },
+        email: {
+            ...styles.email,
+            color: darkTheme ? '#ccc' : '#666',
+        },
+        infoCard: {
+            ...styles.infoCard,
+            backgroundColor: darkTheme ? '#333' : '#fff',
+            shadowColor: darkTheme ? '#fff' : '#000',
+        },
+        statsCard: {
+            ...styles.statsCard,
+            backgroundColor: darkTheme ? '#333' : '#fff',
+            shadowColor: darkTheme ? '#fff' : '#000',
+        },
+        infoTitle: {
+            ...styles.infoTitle,
+            color: darkTheme ? '#fff' : '#2E7D32',
+        },
+        infoItem: {
+            ...styles.infoItem,
+            color: darkTheme ? '#eee' : '#444',
+        },
+        editButton: {
+            ...styles.editButton,
+            backgroundColor: darkTheme ? '#4CAF50' : '#2E7D32',
+        },
+        logoutButton: {
+            ...styles.logoutButton,
+            backgroundColor: darkTheme ? '#f44336' : '#d32f2f',
+        },
+        buttonText: {
+            ...styles.buttonText,
+            color: '#fff',
+        },
+        languageButton: {
+            ...styles.languageButton,
+            backgroundColor: darkTheme ? '#555' : '#E8F5E9',
+        },
+        languageSelected: {
+            backgroundColor: darkTheme ? '#4CAF50' : '#2E7D32',
+        }
     };
 
     // Aquí está el contenido principal de la pantalla de perfil
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={dynamicStyles.container}>
             {/* Mostramos el avatar y nombre del usuario */}
             <View style={styles.avatarContainer}>
                 <MaterialIcons name="person" size={80} color="#2E7D32" />
             </View>
 
-            <Text style={styles.name}>{userInfo.nombre}</Text>
-            <Text style={styles.email}>{userInfo.email}</Text>
+            <Text style={dynamicStyles.name}>{userInfo.nombre}</Text>
+            <Text style={dynamicStyles.email}>{userInfo.email}</Text>
 
             {/* Mostramos información personal */}
-            <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>Información Personal</Text>
-                <Text style={styles.infoItem}>Teléfono: {userInfo.telefono}</Text>
-                <Text style={styles.infoItem}>Cargo: {userInfo.cargo}</Text>
-                <Text style={styles.infoItem}>Experiencia: {userInfo.experiencia}</Text>
+            <View style={dynamicStyles.infoCard}>
+                <Text style={dynamicStyles.infoTitle}>Información Personal</Text>
+                <Text style={dynamicStyles.infoItem}>Teléfono: {userInfo.telefono}</Text>
+                <Text style={dynamicStyles.infoItem}>Cargo: {userInfo.cargo}</Text>
+                <Text style={dynamicStyles.infoItem}>Experiencia: {userInfo.experiencia}</Text>
             </View>
 
-            {/* Mostramos estadísticas de propiedades */}
-            <View style={styles.statsCard}>
-                <Text style={styles.infoTitle}>Estadísticas</Text>
-                <Text style={styles.infoItem}>Propiedades Registradas: {properties?.length || 0}</Text>
-                <Text style={styles.infoItem}>Propiedades Vendidas: 0</Text>
-                <Text style={styles.infoItem}>Propiedades en Alquiler: 0</Text>
+            {/* Preferencias de usuario */}
+            <View style={dynamicStyles.statsCard}>
+                <Text style={dynamicStyles.infoTitle}>Preferencias</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <Text style={dynamicStyles.infoItem}>Tema Oscuro</Text>
+                    <Switch value={darkTheme} onValueChange={handleThemeChange} />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <Text style={dynamicStyles.infoItem}>Idioma</Text>
+                    <TouchableOpacity style={[dynamicStyles.languageButton, language === 'es' && dynamicStyles.languageSelected]} onPress={() => handleLanguageChange('es')}>
+                        <Text style={dynamicStyles.buttonText}>ES</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[dynamicStyles.languageButton, language === 'en' && dynamicStyles.languageSelected]} onPress={() => handleLanguageChange('en')}>
+                        <Text style={dynamicStyles.buttonText}>EN</Text>
+                    </TouchableOpacity>
+                </View>
+                <Text style={dynamicStyles.infoTitle}>Estadísticas</Text>
+                <Text style={dynamicStyles.infoItem}>Propiedades Registradas: {properties?.length || 0}</Text>
+                <Text style={dynamicStyles.infoItem}>Propiedades Vendidas: 0</Text>
+                <Text style={dynamicStyles.infoItem}>Propiedades en Alquiler: 0</Text>
             </View>
 
             {/* Botón para editar el perfil */}
-            <TouchableOpacity style={styles.editButton} onPress={() => {}}>
-                <Text style={styles.buttonText}>Editar Perfil</Text>
+            <TouchableOpacity style={dynamicStyles.editButton} onPress={() => {}}>
+                <Text style={dynamicStyles.buttonText}>Editar Perfil</Text>
             </TouchableOpacity>
 
             {/* Botón para cerrar sesión */}
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Text style={styles.buttonText}>Cerrar Sesión</Text>
+            <TouchableOpacity style={dynamicStyles.logoutButton} onPress={handleLogout}>
+                <Text style={dynamicStyles.buttonText}>Cerrar Sesión</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -165,5 +256,15 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold'
+    },
+    languageButton: {
+        backgroundColor: '#E8F5E9',
+        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        marginHorizontal: 5,
+    },
+    languageSelected: {
+        backgroundColor: '#2E7D32',
     }
 });
